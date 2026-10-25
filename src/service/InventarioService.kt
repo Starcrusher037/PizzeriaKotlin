@@ -5,7 +5,7 @@ import model.Pizza
 
 object InventarioService {
 
-    fun gestionarStock(pizza: Pizza, cantidadPizza: Int): Boolean {
+    fun verificarYReducirStock(pizza: Pizza, cantidadPizza: Int): Boolean {
         val pedidoConfirmado = if(pizza.ingredientesDisponibles >= cantidadPizza){
             pizza.ingredientesDisponibles -= cantidadPizza
             println("Stock suficiente de ingredientes para la preparacion de la pizza.")
