@@ -2,20 +2,22 @@ package service
 
 import model.Pizza
 
-
 object InventarioService {
 
     fun verificarYReducirStock(pizza: Pizza, cantidadPizza: Int): Boolean {
-        val pedidoConfirmado = if(pizza.ingredientesDisponibles >= cantidadPizza){
+        // 1. Verificación previa de stock disponible
+        return if (pizza.ingredientesDisponibles >= cantidadPizza) {
+            // 2. Mensaje de confirmación antes de reducir
+            println("Stock suficiente de ingredientes para la preparación de la pizza.")
+            // 3. Reducción del inventario tras la confirmación
             pizza.ingredientesDisponibles -= cantidadPizza
-            println("Stock suficiente de ingredientes para la preparacion de la pizza.")
             println("Ingredientes restantes: ${pizza.ingredientesDisponibles}")
             true
-        } else{
-            println("No hay stock suficiente para el pedido")
+        } else {
+            // Mensaje si no hay suficiente stock
+            println("No hay stock suficiente para el pedido.")
             println("Sólo hay disponibles ${pizza.ingredientesDisponibles} ingredientes.")
             false
         }
-        return pedidoConfirmado
     }
 }
