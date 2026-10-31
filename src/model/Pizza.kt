@@ -1,7 +1,7 @@
 package model
 
-data class Pizza(
-    val nombrePizza: String,
-    val precioUnitario: Double,
-    var ingredientesDisponibles: Int
-)
+class Pizza(
+    nombrePizza: String,
+    precioUnitario: Double,
+    receta: List<String>
+) : Producto(nombrePizza, precioUnitario, receta)

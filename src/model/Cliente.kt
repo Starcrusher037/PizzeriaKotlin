@@ -1,7 +1,8 @@
 package model
 
-data class Cliente(
-    val nombre: String,
-    val direccion: String,
-    val telefono: String
-)
+class Cliente(
+    nombre: String,
+    telefono: String,
+    email: String,
+    val direccion: String
+) : Usuario(nombre, telefono, email)

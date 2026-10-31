@@ -1,32 +1,37 @@
 package service
 
 import model.Pedido
-import model.Pizza
+import model.Repartidor
 
 object PedidoService {
 
-    private const val descuentoXUmbral = 0.10
-    private const val umbralParaDescuento = 3
+    // Encapsulado: la colección de repartidores no puede ser modificada desde fuera
+    private val repartidoresDisponibles: List<Repartidor> = listOf(
+        Repartidor(1, "Carlos Gómez", "(999) 111-2222", "carlos@pizzeria.com", distanciaKm = 3.5),
+        Repartidor(2, "Andrea Soto", "(999) 333-4444", "andrea@pizzeria.com", distanciaKm = 1.2),
+        Repartidor(3, "Felipe Rivas", "(999) 555-6666", "felipe@pizzeria.com", distanciaKm = 4.8)
+    )
 
-    fun calcularTotal(pizza: Pizza, cantidadPizzas: Int): Double {
-        val totalPizzas = pizza.precioUnitario * cantidadPizzas
-        // Se aplica descuento solo si la cantidad supera estrictamente 3 pizzas
-        return if (cantidadPizzas > umbralParaDescuento) {
-            val descuentoAplicado = totalPizzas * descuentoXUmbral
-            println("Se aplicó un descuento de $${"%.2f".format(descuentoAplicado)}")
-            totalPizzas - descuentoAplicado
+    // Constante privada encapsulada
+    private const val DISTANCIA_UMBRAL_CERCANA = 2.5
+
+    fun obtenerRepartidores(): List<Repartidor> = repartidoresDisponibles
+
+    fun asignarRepartidor(pedido: Pedido): Repartidor? {
+        val repartidor = repartidoresDisponibles.find { it.disponible && it.distanciaKm <= DISTANCIA_UMBRAL_CERCANA }
+            ?: repartidoresDisponibles.find { it.disponible }
+
+        if (repartidor != null) {
+            println("Repartidor asignado al pedido #${pedido.idPedido}: ${repartidor.nombre} (distancia: ${repartidor.distanciaKm} km).")
         } else {
-            totalPizzas
+            println("Aviso: No hay repartidores disponibles en este momento para el pedido #${pedido.idPedido}.")
         }
+        return repartidor
     }
 
-    /**
-     * Transiciona el estado del pedido de "Preparación" a "Terminado".
-     */
-    fun completarPedido(pedido: Pedido) {
-        if (pedido.estadoPedido == "Preparación") {
-            pedido.estadoPedido = "Terminado"
-            println("El pedido #${pedido.idPedido} ha sido completado. Estado: ${pedido.estadoPedido}")
+    fun notificarCliente(pedido: Pedido) {
+        pedido.cliente.email.takeIf { it != "correo@invalido.com" }?.let { correoValido ->
+            println("Notificación enviada a $correoValido: El pedido #${pedido.idPedido} se encuentra en estado '${pedido.estadoPedido}'.")
         }
     }
 }
