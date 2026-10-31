@@ -30,8 +30,8 @@ object PedidoService {
     }
 
     fun notificarCliente(pedido: Pedido) {
-        pedido.cliente.email.takeIf { it != "correo@invalido.com" }?.let { correoValido ->
+        pedido.cliente.email?.let { correoValido ->
             println("Notificación enviada a $correoValido: El pedido #${pedido.idPedido} se encuentra en estado '${pedido.estadoPedido}'.")
-        }
+        } ?: println("Notificación: El cliente no posee correo electrónico registrado. Se omite el envío digital.")
     }
 }

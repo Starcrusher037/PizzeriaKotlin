@@ -4,6 +4,7 @@ import model.Pizza
 import model.Producto
 import service.InventarioService
 import service.PedidoService
+import util.ValidadorEntrada
 
 fun main() {
     println("===========================================")
@@ -28,34 +29,13 @@ fun main() {
 
         // Paso 1.3: Registro y validación de strings del cliente
         println("--- Registro de Cliente ---")
-        print("Ingrese nombre del cliente: ")
-        val nombreInput = readLine()?.trim().takeIf { !it.isNullOrBlank() } ?: "Cliente Anónimo"
-
-        print("Ingrese teléfono del cliente (ej. 912345678): ")
-        val telefonoRaw = readLine()?.trim()
-        val telefono = if (!telefonoRaw.isNullOrBlank() && telefonoRaw.all { it.isDigit() } && telefonoRaw.length in 8..11) {
-            telefonoRaw
-        } else {
-            println("Teléfono inválido. Asignando valor por defecto '(000) 000-0000'.")
-            "(000) 000-0000"
-        }
-
-        print("Ingrese correo electrónico: ")
-        val emailRaw = readLine()?.trim()
-        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")
-        val email = if (!emailRaw.isNullOrBlank() && emailRegex.matches(emailRaw)) {
-            emailRaw
-        } else {
-            println("Correo electrónico inválido. Asignando 'correo@invalido.com'.")
-            "correo@invalido.com"
-        }
-
-        print("Ingrese dirección de entrega: ")
-        val direccion = readLine()?.trim().takeIf { !it.isNullOrBlank() } ?: "Retiro en local"
+        val nombreInput = ValidadorEntrada.leerTextoNoVacio("Ingrese nombre del cliente: ", "nombre")
+        val telefono = ValidadorEntrada.leerTelefonoOpcional("Ingrese teléfono del cliente (Enter para omitir): ")
+        val email = ValidadorEntrada.leerEmailOpcional("Ingrese correo electrónico (Enter para omitir): ")
+        val direccion = ValidadorEntrada.leerTextoNoVacio("Ingrese dirección de entrega: ", "dirección de entrega")
 
         // Paso 4.2: Manejo de nulos para notas del pedido
-        print("¿Desea agregar notas especiales al pedido? (Enter para omitir): ")
-        val notasInput: String? = readLine()?.trim().takeIf { !it.isNullOrBlank() }
+        val notasInput: String? = ValidadorEntrada.leerTextoOpcional("¿Desea agregar notas especiales al pedido? (Enter para omitir): ")
 
         val cliente = Cliente(
             nombre = nombreInput,
@@ -63,36 +43,23 @@ fun main() {
             email = email,
             direccion = direccion
         )
-        println("Cliente registrado: ${cliente.nombre} | Contacto: ${cliente.telefono} | ${cliente.email}\n")
+        println("Cliente registrado: ${cliente.nombre} | Contacto: Tel: ${cliente.telefono ?: "Sin teléfono"} | Email: ${cliente.email ?: "Sin correo"}\n")
 
-        // Selección de productos con Paso 4.1: Manejo de errores try-catch
+        // Paso 4.1: Manejo de errores try-catch en bucle interactivo de selección
         println("--- Menú de Pizzas Disponibles ---")
         for ((index, pizza) in catalogoPizzas.withIndex()) {
             println("[${index + 1}] ${pizza.detallarProducto()}")
         }
 
-        var opcionSeleccionada = 1
-        var cantidadPizzas = 1
+        val opcionSeleccionada = ValidadorEntrada.leerEnteroEnRango(
+            mensaje = "\nSeleccione el número de la pizza deseada (1-${catalogoPizzas.size}): ",
+            min = 1,
+            max = catalogoPizzas.size
+        )
 
-        try {
-            print("\nSeleccione el número de la pizza deseada (1-${catalogoPizzas.size}): ")
-            val inputOpcion = readLine()?.toIntOrNull() ?: throw IllegalArgumentException("Debe ingresar un número de opción válido.")
-            if (inputOpcion !in 1..catalogoPizzas.size) {
-                throw IndexOutOfBoundsException("Opción fuera de rango del menú.")
-            }
-            opcionSeleccionada = inputOpcion
-
-            print("¿Cuántas pizzas de esta variedad desea pedir?: ")
-            val inputCantidad = readLine()?.toIntOrNull() ?: throw IllegalArgumentException("La cantidad debe ser un número entero.")
-            if (inputCantidad <= 0) {
-                throw IllegalArgumentException("La cantidad de pizzas debe ser mayor a 0.")
-            }
-            cantidadPizzas = inputCantidad
-        } catch (e: Exception) {
-            println("Error de entrada: ${e.message}. Se aplicarán valores por defecto (Opción 1, 1 unidad).")
-            opcionSeleccionada = 1
-            cantidadPizzas = 1
-        }
+        val cantidadPizzas = ValidadorEntrada.leerEnteroPositivo(
+            mensaje = "¿Cuántas pizzas de esta variedad desea pedir?: "
+        )
 
         val pizzaSeleccionada = catalogoPizzas[opcionSeleccionada - 1]
         val productosPedido = List(cantidadPizzas) { pizzaSeleccionada }
@@ -137,7 +104,7 @@ fun main() {
         println("===========================================")
         println("   DATOS DEL CLIENTE")
         println("   Nombre         : ${cliente.nombre}")
-        println("   Contacto       : Tel: ${cliente.telefono} | Email: ${cliente.email}")
+        println("   Contacto       : Tel: ${cliente.telefono ?: "Sin teléfono"} | Email: ${cliente.email ?: "Sin correo"}")
         println("   Dirección      : ${cliente.direccion}")
         println("-------------------------------------------")
         println("   PRODUCTOS DEL PEDIDO")
@@ -161,11 +128,7 @@ fun main() {
         println("   Estado Pedido  : ${pedido.estadoPedido}")
         println("===========================================\n")
 
-        print("¿Desea ingresar otro pedido? (s/n): ")
-        val respuesta = readLine()?.trim()?.lowercase()
-        if (respuesta != "s" && respuesta != "si" && respuesta != "sí") {
-            continuar = false
-        }
+        continuar = ValidadorEntrada.leerConfirmacion("¿Desea ingresar otro pedido? (s/n): ")
         println()
     }
 
