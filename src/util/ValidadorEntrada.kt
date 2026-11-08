@@ -1,57 +1,55 @@
 package util
 
+import utilidades.FormatoUtilidades
+import utilidades.ValidadorUtilidades
+
 /**
  * Objeto utilitario encargado de gestionar y validar las entradas por consola del usuario.
  * Implementa el manejo de excepciones (try-catch) dentro de bucles interactivos (while)
- * para garantizar que el usuario ingrese datos válidos sin interrumpir la ejecución
- * ni forzar valores por defecto indeseados.
+ * para garantizar que el usuario ingrese datos validos sin interrumpir la ejecucion.
+ * Integra validaciones avanzadas con Regex y Rangos (Ranges).
  */
 object ValidadorEntrada {
 
     /**
-     * Solicita un número entero dentro de un rango específico [min, max].
-     * Repite la solicitud hasta que se ingrese una opción válida.
+     * Solicita un numero entero dentro de un rango especifico [min, max].
+     * Repite la solicitud hasta que se ingrese una opcion valida.
      */
     fun leerEnteroEnRango(mensaje: String, min: Int, max: Int): Int {
         while (true) {
             try {
                 print(mensaje)
-                val linea = readLine()?.trim() ?: throw IllegalArgumentException("La entrada no puede estar vacía.")
-                val valor = linea.toIntOrNull() ?: throw IllegalArgumentException("Debe ingresar un número entero válido.")
+                val linea = readLine()?.trim() ?: throw IllegalArgumentException("La entrada no puede estar vacia.")
+                val valor = linea.toIntOrNull() ?: throw IllegalArgumentException("Debe ingresar un numero entero valido.")
 
                 if (valor !in min..max) {
-                    throw IndexOutOfBoundsException("Opción fuera de rango. Debe seleccionar entre $min y $max.")
+                    throw IndexOutOfBoundsException("Opcion fuera de rango. Debe seleccionar entre $min y $max.")
                 }
                 return valor
             } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente.")
+                println("[ERROR] Error de entrada: ${e.message} Por favor, intente nuevamente.")
             }
         }
+    }
+
+    /**
+     * Solicita una cantidad de productos dentro del rango permitido (1..100) segun el Paso 1.
+     * Repite la solicitud hasta que se ingrese un valor valido en dicho rango.
+     */
+    fun leerCantidadProductos(mensaje: String = "Ingrese cantidad de productos (1-100): "): Int {
+        return ValidadorUtilidades.leerCantidadProductosEnRango(mensaje)
     }
 
     /**
      * Solicita una cantidad entera positiva (> 0).
-     * Repite la solicitud hasta que se ingrese un valor válido.
+     * Mantiene retrocompatibilidad y valida rango de productos (1..100).
      */
     fun leerEnteroPositivo(mensaje: String): Int {
-        while (true) {
-            try {
-                print(mensaje)
-                val linea = readLine()?.trim() ?: throw IllegalArgumentException("La entrada no puede estar vacía.")
-                val valor = linea.toIntOrNull() ?: throw IllegalArgumentException("La cantidad debe ser un número entero.")
-
-                if (valor <= 0) {
-                    throw IllegalArgumentException("La cantidad debe ser un número mayor a 0.")
-                }
-                return valor
-            } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente.")
-            }
-        }
+        return leerCantidadProductos(mensaje)
     }
 
     /**
-     * Solicita un texto obligatorio que no puede estar vacío ni compuesto solo de espacios.
+     * Solicita un texto obligatorio que no puede estar vacio ni compuesto solo de espacios.
      */
     fun leerTextoNoVacio(mensaje: String, nombreCampo: String = "campo"): String {
         while (true) {
@@ -59,19 +57,19 @@ object ValidadorEntrada {
                 print(mensaje)
                 val linea = readLine()?.trim()
                 if (linea.isNullOrBlank()) {
-                    throw IllegalArgumentException("El $nombreCampo no puede estar vacío.")
+                    throw IllegalArgumentException("El $nombreCampo no puede estar vacio.")
                 }
                 return linea
             } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente.")
+                println("[ERROR] Error de entrada: ${e.message} Por favor, intente nuevamente.")
             }
         }
     }
 
     /**
-     * Solicita un número de teléfono opcional.
-     * Si el usuario presiona Enter sin escribir nada, retorna null (ideal para compras presenciales).
-     * Si ingresa un valor, valida que solo contenga dígitos numéricos y su longitud esté entre 8 y 11 caracteres.
+     * Solicita un numero de telefono opcional.
+     * Si el usuario presiona Enter sin escribir nada, retorna null.
+     * Si ingresa un valor, lo procesa y formatea al estilo uniforme: +XX (XXX) XXX-XXXX (Paso 1).
      */
     fun leerTelefonoOpcional(mensaje: String): String? {
         while (true) {
@@ -81,21 +79,21 @@ object ValidadorEntrada {
                 if (telefono.isNullOrBlank()) {
                     return null
                 }
-                if (!telefono.all { it.isDigit() }) {
-                    throw IllegalArgumentException("El teléfono solo debe contener dígitos numéricos.")
+                // Limpieza de caracteres no numericos para validar que contenga digitos validos
+                val soloDigitos = telefono.replace(Regex("\\D"), "")
+                if (soloDigitos.length !in 8..12) {
+                    throw IllegalArgumentException("El telefono debe contener entre 8 y 12 digitos numericos.")
                 }
-                if (telefono.length !in 8..11) {
-                    throw IllegalArgumentException("El teléfono debe contener entre 8 y 11 dígitos.")
-                }
-                return telefono
+                // Formateo uniforme: +XX (XXX) XXX-XXXX
+                return FormatoUtilidades.formatearTelefono(telefono)
             } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente o presione Enter para omitir.")
+                println("[ERROR] Error de entrada: ${e.message} Por favor, intente nuevamente o presione Enter para omitir.")
             }
         }
     }
 
     /**
-     * Solicita un número de teléfono válido (solo dígitos y longitud entre 8 y 11 caracteres).
+     * Solicita un numero de telefono obligatorio y lo formatea al estilo uniforme (+XX (XXX) XXX-XXXX).
      */
     fun leerTelefono(mensaje: String): String {
         while (true) {
@@ -103,65 +101,31 @@ object ValidadorEntrada {
                 print(mensaje)
                 val telefono = readLine()?.trim()
                 if (telefono.isNullOrBlank()) {
-                    throw IllegalArgumentException("El teléfono no puede estar vacío.")
+                    throw IllegalArgumentException("El telefono no puede estar vacio.")
                 }
-                if (!telefono.all { it.isDigit() }) {
-                    throw IllegalArgumentException("El teléfono solo debe contener dígitos numéricos.")
+                val soloDigitos = telefono.replace(Regex("\\D"), "")
+                if (soloDigitos.length !in 8..12) {
+                    throw IllegalArgumentException("El telefono debe contener entre 8 y 12 digitos numericos.")
                 }
-                if (telefono.length !in 8..11) {
-                    throw IllegalArgumentException("El teléfono debe contener entre 8 y 11 dígitos.")
-                }
-                return telefono
+                return FormatoUtilidades.formatearTelefono(telefono)
             } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente.")
+                println("[ERROR] Error de entrada: ${e.message} Por favor, intente nuevamente.")
             }
         }
     }
 
     /**
-     * Solicita un correo electrónico opcional.
-     * Permite dejar el campo en blanco presionando Enter (retorna null), ideal para clientes presenciales o adultos mayores que no poseen email.
-     * Si el usuario escribe algo, valida su estructura con regex dentro de un bucle try-catch hasta que sea correcto.
+     * Solicita un correo electronico opcional validando el formato estandar nombre@dominio.com con Regex.
      */
     fun leerEmailOpcional(mensaje: String): String? {
-        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")
-        while (true) {
-            try {
-                print(mensaje)
-                val email = readLine()?.trim()
-                if (email.isNullOrBlank()) {
-                    return null
-                }
-                if (!emailRegex.matches(email)) {
-                    throw IllegalArgumentException("El formato del correo es inválido (ejemplo: usuario@dominio.com).")
-                }
-                return email
-            } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente o presione Enter para omitir.")
-            }
-        }
+        return ValidadorUtilidades.leerEmailOpcional(mensaje)
     }
 
     /**
-     * Solicita un correo electrónico obligatorio y valida su estructura mediante una expresión regular.
+     * Solicita un correo electronico obligatorio y valida su estructura mediante Regex (Paso 1).
      */
     fun leerEmail(mensaje: String): String {
-        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")
-        while (true) {
-            try {
-                print(mensaje)
-                val email = readLine()?.trim()
-                if (email.isNullOrBlank()) {
-                    throw IllegalArgumentException("El correo electrónico no puede estar vacío.")
-                }
-                if (!emailRegex.matches(email)) {
-                    throw IllegalArgumentException("El formato del correo es inválido (ejemplo: usuario@dominio.com).")
-                }
-                return email
-            } catch (e: Exception) {
-                println("⚠️ Error de entrada: ${e.message} Por favor, intente nuevamente.")
-            }
-        }
+        return ValidadorUtilidades.leerEmailObligatorio(mensaje)
     }
 
     /**
@@ -174,16 +138,16 @@ object ValidadorEntrada {
     }
 
     /**
-     * Solicita una confirmación 's' o 'n' al usuario.
+     * Solicita una confirmacion 's' o 'n' al usuario.
      */
     fun leerConfirmacion(mensaje: String): Boolean {
         while (true) {
             print(mensaje)
             val respuesta = readLine()?.trim()?.lowercase()
             when (respuesta) {
-                "s", "si", "sí" -> return true
+                "s", "si" -> return true
                 "n", "no" -> return false
-                else -> println("⚠️ Opción no válida. Por favor responda con 's' (sí) o 'n' (no).")
+                else -> println("[AVISO] Opcion no valida. Por favor responda con 's' (si) o 'n' (no).")
             }
         }
     }

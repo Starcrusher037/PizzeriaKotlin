@@ -5,14 +5,12 @@ import model.Repartidor
 
 object PedidoService {
 
-    // Encapsulado: la colección de repartidores no puede ser modificada desde fuera
     private val repartidoresDisponibles: List<Repartidor> = listOf(
         Repartidor(1, "Carlos Gómez", "(999) 111-2222", "carlos@pizzeria.com", distanciaKm = 3.5),
         Repartidor(2, "Andrea Soto", "(999) 333-4444", "andrea@pizzeria.com", distanciaKm = 1.2),
         Repartidor(3, "Felipe Rivas", "(999) 555-6666", "felipe@pizzeria.com", distanciaKm = 4.8)
     )
 
-    // Constante privada encapsulada
     private const val DISTANCIA_UMBRAL_CERCANA = 2.5
 
     fun obtenerRepartidores(): List<Repartidor> = repartidoresDisponibles
