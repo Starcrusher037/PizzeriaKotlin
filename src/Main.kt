@@ -9,256 +9,322 @@ import service.InventarioService
 import service.PedidoService
 import util.ValidadorEntrada
 import utilidades.AnalizadorReflection
-import utilidades.FormatoUtilidades
 import utilidades.GestorRegistro
 import utilidades.PromocionFechaHelper
-import utilidades.ValidadorUtilidades
+import utilidades.Promocionable
 
 /**
- * Programa principal que demuestra la integracion de conceptos avanzados en Kotlin:
- * - Paso 1: Regex (validacion de email y formateo de telefono) y Ranges (rango de fechas y rango de cantidades 1..100).
- * - Paso 2: Anotaciones (@Promocionable) y Reflection (inspeccion dinamica de clases clave).
- * - Paso 3: Operator Overloading (operador + en Pedido y operador == en Producto).
+ * Programa Principal - Sistema de Gestion de Pizzeria (Kotlin Avanzado).
+ *
+ * Flujo interactivo real que incorpora y demuestra:
+ * - Paso 1: Regex (validacion de email y formateo de telefono) y Ranges (rango 1..100 y rango de fechas promocionales).
+ * - Paso 2: Anotaciones (@Promocionable) y Reflection (inspeccion dinamica de clases y deteccion de promociones).
+ * - Paso 3: Operator Overloading (operador + en Pedido y == en Producto).
  * - Paso 4: Declaraciones de desestructuracion en Cliente y Pedido.
- * - Paso 5: Evaluacion de igualdad de objetos (equals y hashCode) y prevencion de duplicados.
- * - Paso 6 y 7: Resumen consolidado ordenado para el cliente y la pizzeria.
+ * - Paso 5: Evaluacion de igualdad (equals / hashCode) y prevencion de duplicados con GestorRegistro.
+ * - Pasos 6 & 7: Resumen consolidado ordenado para el cliente y la pizzeria.
  */
 fun main() {
     println("==========================================================================")
-    println("          SISTEMA DE GESTION DE PIZZERIA - KOTLIN AVANZADO                ")
+    println("              SISTEMA DE GESTION DE PIZZERIA - DUOC UC                    ")
+    println("              (MODO INTERACTIVO - KOTLIN AVANZADO)                        ")
     println("==========================================================================\n")
 
     // =========================================================================
-    // PASO 2: ANOTACIONES Y REFLECTION
+    // INICIALIZACION DEL CATALOGO Y EVALUACION DE DUPLICADOS (PASO 5)
     // =========================================================================
-    println("==========================================================================")
-    println("PASO 2: REFLECTION - INSPECCION DINAMICA DE ENTIDADES CLAVE")
-    println("==========================================================================")
-    println("Analizando dinamicamente metodos, propiedades y anotaciones con Reflection:\n")
+    val catalogoProductos: List<Producto> = listOf(
+        Pizza("Pizza Pepperoni", 8990.0, listOf("Masa", "Salsa de Tomate", "Queso Mozzarella", "Pepperoni")),
+        Pizza("Pizza Napolitana", 9490.0, listOf("Masa", "Salsa de Tomate", "Queso Mozzarella", "Jamón")),
+        Pizza("Pizza Vegetariana", 9990.0, listOf("Masa", "Salsa de Tomate", "Queso Mozzarella", "Champiñones")),
+        PizzaPromocional(), // Anotado con @Promocionable (Paso 2)
+        ComboFamiliar(),    // Anotado con @Promocionable (Paso 2)
+        Producto("Coca Cola 1.5L", 2500.0, emptyList(), categoria = "Bebida")
+    )
 
-    // Inspeccion por reflection de Cliente
-    AnalizadorReflection.inspeccionarClase(Cliente::class)
-
-    // Inspeccion por reflection de Producto
-    AnalizadorReflection.inspeccionarClase(Producto::class)
-
-    // Inspeccion por reflection de Pedido
-    AnalizadorReflection.inspeccionarClase(Pedido::class)
-
-    // Inspeccion de clase anotada con @Promocionable
-    AnalizadorReflection.inspeccionarClase(ComboFamiliar::class)
-
-    // =========================================================================
-    // PASO 1: REGEX Y RANGES
-    // =========================================================================
-    println("==========================================================================")
-    println("PASO 1: REGEX Y RANGES - VALIDACION Y FORMATEO DE ENTRADAS")
-    println("==========================================================================")
-
-    println("1. Validacion de correos electronicos con Regex (nombre@dominio.com):")
-    val correosPrueba = listOf("juan.perez@dominio.com", "correo_invalido.com", "cliente@pizzeria.cl", "sin_arroba")
-    for (correo in correosPrueba) {
-        val esValido = ValidadorUtilidades.validarEmail(correo)
-        val estado = if (esValido) "[VALIDO]" else "[INVALIDO]"
-        println("   - Correo '$correo' -> $estado")
+    println("--- Inicializando Catalogo de Productos en GestorRegistro ---")
+    for (prod in catalogoProductos) {
+        GestorRegistro.registrarProducto(prod)
     }
 
-    println("\n2. Formateo de numeros de telefono a estilo uniforme (+XX (XXX) XXX-XXXX):")
-    val telefonosPrueba = listOf("9991112222", "569991112222", "+56 9 8765 4321", "98765432")
-    for (tel in telefonosPrueba) {
-        val telFormateado = FormatoUtilidades.formatearTelefono(tel)
-        println("   - Entrada: '$tel' -> Formateado: '$telFormateado'")
-    }
+    // Demostracion practica de prevencion de duplicados (Paso 5) usando sobrecarga == (Paso 3)
+    val productoDuplicadoTest = Producto("Pizza Pepperoni", 9200.0, listOf("Masa"), categoria = "Pizza")
+    println("Comprobando deteccion de duplicado en catalogo (Pizza Pepperoni == Pizza Pepperoni):")
+    GestorRegistro.registrarProducto(productoDuplicadoTest)
+    println()
 
-    println("\n3. Evaluacion de rango para cantidades de productos (Ranges 1..100):")
-    val cantidadesPrueba = listOf(0, 3, 50, 100, 105)
-    for (cant in cantidadesPrueba) {
-        val enRango = ValidadorUtilidades.validarCantidadEnRango(cant)
-        val estado = if (enRango) "[EN RANGO (1-100)]" else "[FUERA DE RANGO]"
-        println("   - Cantidad $cant -> $estado")
-    }
-
-    println("\n4. Evaluacion de rango de fechas para periodo promocional:")
+    // =========================================================================
+    // PASO 1: RANGES - EVALUACION DEL PERIODO PROMOCIONAL DE FECHAS
+    // =========================================================================
     val hoy = LocalDate.now()
-    val fechaFuera = LocalDate.of(2026, 12, 25)
-    println("   - Periodo de promociones: ${PromocionFechaHelper.PERIODO_PROMOCIONAL.start} al ${PromocionFechaHelper.PERIODO_PROMOCIONAL.endInclusive}")
-    println("   - Fecha actual ($hoy) en promocion? ${if (PromocionFechaHelper.estaEnPeriodoPromocion(hoy)) "SI (Aplica 10% descuento)" else "NO"}")
-    println("   - Fecha $fechaFuera en promocion? ${if (PromocionFechaHelper.estaEnPeriodoPromocion(fechaFuera)) "SI" else "NO"}\n")
+    val enPeriodoPromo = PromocionFechaHelper.estaEnPeriodoPromocion(hoy)
+    println("==========================================================================")
+    println("PASO 1: EVALUACION DE RANGO DE FECHAS PROMOCIONALES (RANGES)")
+    println("==========================================================================")
+    println("Periodo promocional activo : ${PromocionFechaHelper.PERIODO_PROMOCIONAL.start} al ${PromocionFechaHelper.PERIODO_PROMOCIONAL.endInclusive}")
+    println("Fecha actual de operacion  : $hoy")
+    println("¿Aplica descuento de fecha?: ${if (enPeriodoPromo) "SI (10% descuento extra en todos los pedidos)" else "NO"}\n")
 
     // =========================================================================
-    // PASO 5: EVALUACIONES DE IGUALDAD DE OBJETOS (EQUALS Y HASHCODE)
+    // PASO 2: REFLECTION - DIAGNOSTICO DINAMICO OPCIONAL DE ENTIDADES
     // =========================================================================
-    println("==========================================================================")
-    println("PASO 5: EVALUACION DE IGUALDAD Y PREVENCION DE DUPLICADOS")
-    println("==========================================================================")
-    println("Evaluando igualdad en Clientes (basada en nombre y correo):")
-    val cliente1 = Cliente("Carlos Perez", FormatoUtilidades.formatearTelefono("9991112222"), "carlos@correo.com", "Av. Providencia 123")
-    val cliente1Duplicado = Cliente("Carlos Perez", FormatoUtilidades.formatearTelefono("9993334444"), "carlos@correo.com", "Otra Direccion 456")
-    val cliente2 = Cliente("Maria Gonzalez", FormatoUtilidades.formatearTelefono("9882223333"), "maria@correo.com", "Calle Los Leones 789")
-
-    println("   - cliente1 == cliente1Duplicado? ${cliente1 == cliente1Duplicado} (Mismo nombre y correo)")
-    println("   - cliente1 == cliente2? ${cliente1 == cliente2}")
-    GestorRegistro.registrarCliente(cliente1)
-    GestorRegistro.registrarCliente(cliente1Duplicado) // Se detecta como duplicado
-    GestorRegistro.registrarCliente(cliente2)
-
-    println("\nEvaluando igualdad en Productos (basada en nombre y categoria):")
-    val pizza1 = Pizza("Pizza Pepperoni", 8990.0, listOf("Masa", "Salsa de Tomate", "Queso Mozzarella", "Pepperoni"))
-    val pizza1Duplicada = Producto("Pizza Pepperoni", 9500.0, listOf("Masa", "Queso Mozzarella"), categoria = "Pizza")
-    val bebida = Producto("Coca Cola 1.5L", 2500.0, emptyList(), categoria = "Bebida")
-    val comboFamiliar = ComboFamiliar()
-    val pizzaPromo = PizzaPromocional()
-
-    println("   - pizza1 == pizza1Duplicada? ${pizza1 == pizza1Duplicada} (Mismo nombre y categoria)")
-    println("   - pizza1 == bebida? ${pizza1 == bebida}")
-    GestorRegistro.registrarProducto(pizza1)
-    GestorRegistro.registrarProducto(pizza1Duplicada) // Se detecta como duplicado
-    GestorRegistro.registrarProducto(bebida)
-    GestorRegistro.registrarProducto(comboFamiliar)
-    GestorRegistro.registrarProducto(pizzaPromo)
-    println()
-
-    // =========================================================================
-    // PASO 3: OPERATOR OVERLOADING Y PROCESAMIENTO DE PEDIDOS
-    // =========================================================================
-    println("==========================================================================")
-    println("PASO 3: OPERATOR OVERLOADING - SOBRECARGA DEL OPERADOR + EN PEDIDO")
-    println("==========================================================================")
-
-    val pedidoA = Pedido(
-        idPedido = 101,
-        cliente = cliente1,
-        productos = listOf(pizza1, pizzaPromo),
-        estadoInicial = "En preparacion",
-        notas = "Masa crujiente",
-        fecha = hoy
-    )
-
-    val pedidoB = Pedido(
-        idPedido = 102,
-        cliente = cliente1,
-        productos = listOf(comboFamiliar, bebida),
-        estadoInicial = "En preparacion",
-        notas = "Bebida bien helada",
-        fecha = hoy
-    )
-
-    println("Detalle del Pedido #101:")
-    println("   - Productos: ${pedidoA.productos.joinToString { it.nombre }}")
-    println("   - Subtotal: $${"%.2f".format(pedidoA.calcularSubtotal())} | Total: $${"%.2f".format(pedidoA.calcularTotal())}")
-
-    println("\nDetalle del Pedido #102:")
-    println("   - Productos: ${pedidoB.productos.joinToString { it.nombre }}")
-    println("   - Subtotal: $${"%.2f".format(pedidoB.calcularSubtotal())} | Total: $${"%.2f".format(pedidoB.calcularTotal())}")
-
-    // Combinacion mediante sobrecarga del operador '+'
-    println("\nEjecutando combinacion de pedidos con operador '+': val pedidoCombinado = pedidoA + pedidoB")
-    val pedidoCombinado = pedidoA + pedidoB
-
-    println("Pedido Combinado generado (#${pedidoCombinado.idPedido}):")
-    println("   - Cliente principal: ${pedidoCombinado.cliente.nombre}")
-    println("   - Total de productos combinados: ${pedidoCombinado.productos.size}")
-    pedidoCombinado.productos.forEachIndexed { i, p -> println("     [$i] ${p.detallarProducto()}") }
-    println("   - Notas unificadas: ${pedidoCombinado.notas}")
-    println("   - Subtotal recalculado: $${"%.2f".format(pedidoCombinado.calcularSubtotal())}")
-    println("   - Descuento total recalculado: -$${"%.2f".format(pedidoCombinado.calcularDescuento())}")
-    println("   - Impuestos (IVA 19%): $${"%.2f".format(pedidoCombinado.calcularImpuestos())}")
-    println("   - Total Final recalculado: $${"%.2f".format(pedidoCombinado.calcularTotal())}\n")
-
-    // =========================================================================
-    // PASO 4: DECLARACIONES DE DESESTRUCTURACION
-    // =========================================================================
-    println("==========================================================================")
-    println("PASO 4: DECLARACIONES DE DESESTRUCTURACION")
-    println("==========================================================================")
-
-    println("1. Desestructuracion de objeto Cliente (nombre, email, telefono):")
-    val (nombreCli, emailCli, telefonoCli) = cliente1
-    println("   -> Nombre    : $nombreCli")
-    println("   -> Email     : ${emailCli ?: "Sin correo"}")
-    println("   -> Telefono  : ${telefonoCli ?: "Sin telefono"}")
-
-    println("\n2. Desestructuracion de objeto Pedido (cliente, productos, total):")
-    val (clienteExtraido, productosExtraidos, totalExtraido) = pedidoCombinado
-    println("   -> Cliente   : ${clienteExtraido.nombre} (${clienteExtraido.direccion})")
-    println("   -> Cantidad de productos: ${productosExtraidos.size}")
-    println("   -> Total Pedido: $${"%.2f".format(totalExtraido)}\n")
-
-    // =========================================================================
-    // PASO 2: PRODUCTOS CON ANOTACION @Promocionable DETECTADOS DINAMICAMENTE
-    // =========================================================================
-    println("==========================================================================")
-    println("PASO 2: PRODUCTOS IDENTIFICADOS DINAMICAMENTE COMO @Promocionable")
-    println("==========================================================================")
-    val promocionables = pedidoCombinado.obtenerProductosPromocionables()
-    println("Productos del pedido que califican para promociones especiales:")
-    for (prod in promocionables) {
-        val anotacion = prod::class.java.getAnnotation(utilidades.Promocionable::class.java)
-        println("   - Producto: ${prod.nombre} [${prod.categoria}]")
-        println("     Descripcion Promocion: ${anotacion.descripcion}")
-        println("     Descuento adicional aplicado: ${(anotacion.descuentoAdicional * 100).toInt()}%")
+    println("¿Desea ejecutar la inspeccion dinamica con Reflection (Paso 2) de las clases principales?")
+    val ejecutarReflection = ValidadorEntrada.leerConfirmacion("Responda 's' para ver Reflection o 'n' para ir directo a pedidos (s/n): ")
+    if (ejecutarReflection) {
+        println("\n--- Inspeccion por Reflection ---")
+        AnalizadorReflection.inspeccionarClase(ComboFamiliar::class)
+        AnalizadorReflection.inspeccionarClase(Pedido::class)
+        AnalizadorReflection.inspeccionarClase(Cliente::class)
     }
     println()
 
     // =========================================================================
-    // PASO 6 & 7: RESUMEN ORDENADO Y CONFIRMACION PARA CLIENTE Y PIZZERIA
+    // FLUJO INTERACTIVO DE PEDIDOS
     // =========================================================================
-    println("==========================================================================")
-    println("         PASO 6 & 7: RESUMEN Y CONFIRMACION FINAL DE PEDIDO               ")
-    println("==========================================================================")
-    println("DATOS DEL CLIENTE (DESESTRUCTURADO):")
-    println("  Nombre Cliente  : $nombreCli")
-    println("  Correo Contacto : ${emailCli ?: "Sin correo"}")
-    println("  Telefono        : ${telefonoCli ?: "Sin telefono"}")
-    println("  Direccion       : ${cliente1.direccion}")
-    println("--------------------------------------------------------------------------")
-    println("DETALLE DE PRODUCTOS INCLUIDOS:")
-    for ((index, prod) in pedidoCombinado.productos.withIndex()) {
-        val esPromo = if (prod in promocionables) "[PROMOCIONABLE]" else "[ESTANDAR]"
-        println("  ${index + 1}. ${prod.nombre} (${prod.categoria}) - $${"%.2f".format(prod.precio)} $esPromo")
-    }
-    println("--------------------------------------------------------------------------")
-    println("DESGLOSE DE TOTALES Y DESCUENTOS:")
-    println("  Subtotal Bruto             : $${"%.2f".format(pedidoCombinado.calcularSubtotal())}")
-    if (pedidoCombinado.calcularDescuentoVolumen() > 0.0) {
-        println("  Descuento por Volumen (10%): -$${"%.2f".format(pedidoCombinado.calcularDescuentoVolumen())}")
-    }
-    if (pedidoCombinado.calcularDescuentoPorFecha() > 0.0) {
-        println("  Descuento Periodo Promo(10%): -$${"%.2f".format(pedidoCombinado.calcularDescuentoPorFecha())}")
-    }
-    if (pedidoCombinado.calcularDescuentoPorAnotacion() > 0.0) {
-        println("  Descuento @Promocionable   : -$${"%.2f".format(pedidoCombinado.calcularDescuentoPorAnotacion())}")
-    }
-    println("  Descuento Total Acumulado  : -$${"%.2f".format(pedidoCombinado.calcularDescuento())}")
-    println("  Impuestos (IVA 19%)        : $${"%.2f".format(pedidoCombinado.calcularImpuestos())}")
-    println("  TOTAL FINAL A PAGAR        : $${"%.2f".format(pedidoCombinado.calcularTotal())}")
-    println("--------------------------------------------------------------------------")
-    println("NOTAS DEL PEDIDO             : ${pedidoCombinado.notas ?: "Sin notas"}")
-    println("ESTADO DEL PEDIDO            : ${pedidoCombinado.estadoPedido}")
-    println("==========================================================================\n")
+    val listaPedidosDelDia = mutableListOf<Pedido>()
+    var siguienteIdPedido = 101
+    var continuar = true
 
-    // Flujo con servicios de inventario y reparto
-    println("--- Procesando Inventario y Coordinacion de Entrega ---")
-    val stockDisponible = InventarioService.verificarDisponibilidad(pedidoCombinado.productos)
-    if (stockDisponible) {
-        InventarioService.descontarIngredientesPedido(pedidoCombinado.productos)
-        PedidoService.notificarCliente(pedidoCombinado)
-        val repartidor = PedidoService.asignarRepartidor(pedidoCombinado)
-        if (repartidor != null) {
-            repartidor.entregarPedido(pedidoCombinado)
-        } else {
-            pedidoCombinado.cambiarEstadoPedido("Listo")
+    while (continuar) {
+        println("==========================================================================")
+        println("                           NUEVO PEDIDO                                   ")
+        println("==========================================================================")
+
+        // ---------------------------------------------------------------------
+        // PASO 1 & 5: REGISTRO DE CLIENTE CON REGEX Y EVALUACION DE DUPLICADOS
+        // ---------------------------------------------------------------------
+        println("\n--- 1. Datos del Cliente ---")
+        val nombre = ValidadorEntrada.leerTextoNoVacio("Ingrese nombre del cliente: ", "nombre")
+
+        // Regex: Telefono opcional formateado automaticamente a +XX (XXX) XXX-XXXX
+        val telefono = ValidadorEntrada.leerTelefonoOpcional("Ingrese telefono (ej: 98765432 o Enter para omitir): ")
+        if (telefono != null) {
+            println(" -> Telefono formateado uniformemente con Regex: $telefono")
         }
+
+        // Regex: Email opcional validado con patron nombre@dominio.com
+        val email = ValidadorEntrada.leerEmailOpcional("Ingrese correo electronico (nombre@dominio.com o Enter para omitir): ")
+        if (email != null) {
+            println(" -> Correo validado exitosamente con Regex: $email")
+        }
+
+        val direccion = ValidadorEntrada.leerTextoNoVacio("Ingrese direccion de entrega: ", "direccion de entrega")
+
+        val cliente = Cliente(nombre = nombre, telefono = telefono, email = email, direccion = direccion)
+
+        // Paso 5: Evaluacion de duplicidad con equals() y hashCode()
+        println("\n--- Registro de Cliente en GestorRegistro (equals / hashCode) ---")
+        val esClienteNuevo = GestorRegistro.registrarCliente(cliente)
+        if (!esClienteNuevo) {
+            println(" -> [INFO] Cliente recurrente reconocido en el sistema.")
+        }
+
+        // ---------------------------------------------------------------------
+        // SELECCION DE PRODUCTOS Y RANGOS (1..100)
+        // ---------------------------------------------------------------------
+        println("\n--- 2. Seleccion de Productos del Catalogo ---")
+        val productosSeleccionados = mutableListOf<Producto>()
+        var agregarMasProductos = true
+
+        while (agregarMasProductos) {
+            println("\nMenu de Productos Disponibles:")
+            for ((index, prod) in catalogoProductos.withIndex()) {
+                val esPromo = if (prod::class.java.isAnnotationPresent(Promocionable::class.java)) " [PROMOCION ESPECIAL]" else ""
+                println(" [${index + 1}] ${prod.detallarProducto()}$esPromo")
+            }
+
+            val opcion = ValidadorEntrada.leerEnteroEnRango(
+                mensaje = "\nSeleccione el numero del producto deseado (1-${catalogoProductos.size}): ",
+                min = 1,
+                max = catalogoProductos.size
+            )
+
+            // Paso 1: Ranges 1..100 para cantidades
+            val cantidad = ValidadorEntrada.leerCantidadProductos("Ingrese cantidad deseada (1-100): ")
+
+            val productoElegido = catalogoProductos[opcion - 1]
+            repeat(cantidad) {
+                productosSeleccionados.add(productoElegido)
+            }
+            println(" -> Agregado(s) $cantidad x '${productoElegido.nombre}' al pedido.")
+
+            agregarMasProductos = ValidadorEntrada.leerConfirmacion("\n¿Desea agregar otro producto a este mismo pedido? (s/n): ")
+        }
+
+        val notasPedido = ValidadorEntrada.leerTextoOpcional("\n¿Desea agregar notas especiales al pedido? (Enter para omitir): ")
+
+        // Creacion de la instancia de Pedido
+        var pedidoActual = Pedido(
+            idPedido = siguienteIdPedido++,
+            cliente = cliente,
+            productos = productosSeleccionados,
+            estadoInicial = "En preparacion",
+            notas = notasPedido,
+            fecha = hoy
+        )
+
+        // ---------------------------------------------------------------------
+        // PASO 3: OPERATOR OVERLOADING (+) EN FLUJO REAL
+        // ---------------------------------------------------------------------
+        println("\n--------------------------------------------------------------------------")
+        println("PASO 3: SOBRECARGA DEL OPERADOR '+' (OPERATOR OVERLOADING)")
+        println("--------------------------------------------------------------------------")
+        println("¿Desea agregar una adicion o segundo pedido y combinarlo con el actual")
+        val combinarConOtro = ValidadorEntrada.leerConfirmacion("utilizando la sobrecarga del operador '+'? (s/n): ")
+
+        if (combinarConOtro) {
+            println("\n--- Armando Pedido Adicional para Combinacion con '+' ---")
+            for ((index, prod) in catalogoProductos.withIndex()) {
+                println(" [${index + 1}] ${prod.detallarProducto()}")
+            }
+            val opcionExtra = ValidadorEntrada.leerEnteroEnRango(
+                mensaje = "Seleccione producto para la adicion (1-${catalogoProductos.size}): ",
+                min = 1,
+                max = catalogoProductos.size
+            )
+            val cantExtra = ValidadorEntrada.leerCantidadProductos("Ingrese cantidad (1-100): ")
+            val notaExtra = ValidadorEntrada.leerTextoOpcional("Notas de la adicion (Enter para omitir): ")
+
+            val productosExtra = List(cantExtra) { catalogoProductos[opcionExtra - 1] }
+            val pedidoB = Pedido(
+                idPedido = siguienteIdPedido++,
+                cliente = cliente,
+                productos = productosExtra,
+                estadoInicial = "En preparacion",
+                notas = notaExtra,
+                fecha = hoy
+            )
+
+            // Ejecucion real de la sobrecarga del operador '+'
+            println("\n[EJECUTANDO OPERATOR OVERLOADING] val pedidoCombinado = pedidoActual + pedidoB")
+            val pedidoCombinado = pedidoActual + pedidoB
+            println("¡Pedidos combinados exitosamente en Pedido #${pedidoCombinado.idPedido}!")
+            println(" - Cantidad total de productos combinados: ${pedidoCombinado.productos.size}")
+            println(" - Notas combinadas: ${pedidoCombinado.notas ?: "Sin notas"}")
+            pedidoActual = pedidoCombinado
+        }
+
+        // ---------------------------------------------------------------------
+        // PASO 4: DECLARACIONES DE DESESTRUCTURACION
+        // ---------------------------------------------------------------------
+        // 1. Desestructuracion de Cliente: (nombre, email, telefono)
+        val (nombreCli, emailCli, telefonoCli) = pedidoActual.cliente
+
+        // 2. Desestructuracion de Pedido: (cliente, productos, total)
+        val (clienteExtraido, productosExtraidos, totalCalculado) = pedidoActual
+
+        // ---------------------------------------------------------------------
+        // PASO 2: DETECCION DINAMICA DE ANOTACIONES @Promocionable
+        // ---------------------------------------------------------------------
+        val productosPromo = pedidoActual.obtenerProductosPromocionables()
+
+        // ---------------------------------------------------------------------
+        // PASO 6 & 7: RESUMEN ORDENADO Y CONFIRMACION
+        // ---------------------------------------------------------------------
+        println("\n==========================================================================")
+        println("             RESUMEN Y CONFIRMACION FINAL DEL PEDIDO                      ")
+        println("==========================================================================")
+        println("DATOS DEL CLIENTE (DESESTRUCTURADOS):")
+        println("  Nombre    : $nombreCli")
+        println("  Contacto  : Tel: ${telefonoCli ?: "Sin telefono"} | Email: ${emailCli ?: "Sin correo"}")
+        println("  Direccion : ${clienteExtraido.direccion}")
+        println("--------------------------------------------------------------------------")
+        println("DETALLE DE PRODUCTOS INCLUIDOS (${productosExtraidos.size} item(s)):")
+        for ((idx, p) in productosExtraidos.withIndex()) {
+            val esPromo = if (p in productosPromo) {
+                val anotacion = p::class.java.getAnnotation(Promocionable::class.java)
+                " [PROMO: ${(anotacion.descuentoAdicional * 100).toInt()}% desc extra]"
+            } else {
+                ""
+            }
+            println("  ${idx + 1}. ${p.nombre} (${p.categoria}) - $${"%.2f".format(p.precio)}$esPromo")
+        }
+        println("--------------------------------------------------------------------------")
+        println("DESGLOSE DE TOTALES Y DESCUENTOS:")
+        println("  Subtotal Bruto              : $${"%.2f".format(pedidoActual.calcularSubtotal())}")
+
+        val descVolumen = pedidoActual.calcularDescuentoVolumen()
+        if (descVolumen > 0.0) {
+            println("  Descuento por Volumen (10%) : -$${"%.2f".format(descVolumen)}")
+        }
+
+        val descFecha = pedidoActual.calcularDescuentoPorFecha()
+        if (descFecha > 0.0) {
+            println("  Descuento Periodo Promo (10%): -$${"%.2f".format(descFecha)}")
+        }
+
+        val descAnotacion = pedidoActual.calcularDescuentoPorAnotacion()
+        if (descAnotacion > 0.0) {
+            println("  Descuento @Promocionable    : -$${"%.2f".format(descAnotacion)}")
+        }
+
+        println("  Descuento Total Acumulado   : -$${"%.2f".format(pedidoActual.calcularDescuento())}")
+        println("  Impuestos (IVA 19%)         : $${"%.2f".format(pedidoActual.calcularImpuestos())}")
+        println("  TOTAL FINAL (Desestructurado): $${"%.2f".format(totalCalculado)}")
+        println("--------------------------------------------------------------------------")
+        println("  Notas del Pedido            : ${pedidoActual.notas ?: "Sin notas"}")
+        println("  Estado Inicial              : ${pedidoActual.estadoPedido}")
+        println("==========================================================================")
+
+        // ---------------------------------------------------------------------
+        // FLUJO DE INVENTARIO Y ASIGNACION DE REPARTO
+        // ---------------------------------------------------------------------
+        println("\n--- Verificacion de Stock en Inventario ---")
+        val stockDisponible = InventarioService.verificarDisponibilidad(pedidoActual.productos)
+
+        if (stockDisponible) {
+            InventarioService.descontarIngredientesPedido(pedidoActual.productos)
+            PedidoService.notificarCliente(pedidoActual)
+
+            println("\n--- Asignacion de Repartidor ---")
+            val repartidor = PedidoService.asignarRepartidor(pedidoActual)
+            if (repartidor != null) {
+                repartidor.entregarPedido(pedidoActual)
+            } else {
+                pedidoActual.cambiarEstadoPedido("Listo")
+            }
+        } else {
+            pedidoActual.cambiarEstadoPedido("Cancelado")
+            println("El pedido #${pedidoActual.idPedido} no pudo procesarse por falta de insumos.")
+        }
+
+        listaPedidosDelDia.add(pedidoActual)
+
+        continuar = ValidadorEntrada.leerConfirmacion("\n¿Desea ingresar otro pedido nuevo? (s/n): ")
+        println()
     }
+
+    // =========================================================================
+    // REPORTE DIARIO DE PEDIDOS AL CIERRE DE LA JORNADA
+    // =========================================================================
+    val pedidosDelDia: Array<Pedido> = listaPedidosDelDia.toTypedArray()
 
     println("\n==========================================================================")
-    println("Demostracion finalizada exitosamente.")
-    println("El sistema ha comprobado satisfactoriamente:")
-    println(" 1. Regex (email valido nombre@dominio.com y telefono +XX (XXX) XXX-XXXX)")
-    println(" 2. Ranges (fecha promocional y cantidad 1-100)")
-    println(" 3. Anotacion @Promocionable y Reflection dinamico")
-    println(" 4. Operator Overloading (+ en Pedido y == en Producto)")
-    println(" 5. Desestructuracion de Cliente y Pedido")
-    println(" 6. Evaluacion equals() / hashCode() y no duplicidad")
+    println("                      REPORTE DIARIO CONSOLIDADO                          ")
     println("==========================================================================")
+    println("Total de pedidos registrados: ${pedidosDelDia.size}\n")
+
+    for (p in pedidosDelDia) {
+        val resumenProductos = p.productos.groupBy { it.nombre }.map { "${it.value.size}x ${it.key}" }.joinToString(", ")
+        println(" • Pedido #${p.idPedido} | Cliente: ${p.cliente.nombre} | Productos: [$resumenProductos] | Total: $${"%.2f".format(p.calcularTotal())} | Estado: ${p.estadoPedido}")
+    }
+
+    val completados = pedidosDelDia.filter { it.estadoPedido == "Listo" || it.estadoPedido == "En camino" }
+    val pendientesOCancelados = pedidosDelDia.filter { it.estadoPedido == "En preparacion" || it.estadoPedido == "Cancelado" }
+    val recaudacionTotal = completados.sumOf { it.calcularTotal() }
+
+    println("\n--- Resumen por Estados (Agrupados con filter) ---")
+    println("Pedidos Completados / Entregados: ${completados.size}")
+    for (p in completados) {
+        println("  -> #${p.idPedido} (${p.cliente.nombre}) - Total: $${"%.2f".format(p.calcularTotal())}")
+    }
+
+    println("\nPedidos Pendientes / Cancelados : ${pendientesOCancelados.size}")
+    for (p in pendientesOCancelados) {
+        println("  -> #${p.idPedido} (${p.cliente.nombre}) - Estado: ${p.estadoPedido}")
+    }
+
+    println("\nRecaudacion total del dia: $${"%.2f".format(recaudacionTotal)}")
+    println("==========================================================================")
+    println("¡Gracias por utilizar el Sistema de Gestion de Pizzeria!")
 }
