@@ -8,26 +8,16 @@ import model.Producto
 import service.InventarioService
 import service.PedidoService
 import util.ValidadorEntrada
-import utilidades.AnalizadorReflection
 import utilidades.GestorRegistro
 import utilidades.PromocionFechaHelper
 import utilidades.Promocionable
 
 /**
  * Programa Principal - Sistema de Gestion de Pizzeria (Kotlin Avanzado).
- *
- * Flujo interactivo real que incorpora y demuestra:
- * - Paso 1: Regex (validacion de email y formateo de telefono) y Ranges (rango 1..100 y rango de fechas promocionales).
- * - Paso 2: Anotaciones (@Promocionable) y Reflection (inspeccion dinamica de clases y deteccion de promociones).
- * - Paso 3: Operator Overloading (operador + en Pedido y == en Producto).
- * - Paso 4: Declaraciones de desestructuracion en Cliente y Pedido.
- * - Paso 5: Evaluacion de igualdad (equals / hashCode) y prevencion de duplicados con GestorRegistro.
- * - Pasos 6 & 7: Resumen consolidado ordenado para el cliente y la pizzeria.
  */
 fun main() {
     println("==========================================================================")
-    println("              SISTEMA DE GESTION DE PIZZERIA - DUOC UC                    ")
-    println("              (MODO INTERACTIVO - KOTLIN AVANZADO)                        ")
+    println("                     SISTEMA DE GESTION DE PIZZERIA                       ")
     println("==========================================================================\n")
 
     // =========================================================================
@@ -53,9 +43,7 @@ fun main() {
     GestorRegistro.registrarProducto(productoDuplicadoTest)
     println()
 
-    // =========================================================================
-    // PASO 1: RANGES - EVALUACION DEL PERIODO PROMOCIONAL DE FECHAS
-    // =========================================================================
+
     val hoy = LocalDate.now()
     val enPeriodoPromo = PromocionFechaHelper.estaEnPeriodoPromocion(hoy)
     println("==========================================================================")
@@ -65,18 +53,9 @@ fun main() {
     println("Fecha actual de operacion  : $hoy")
     println("¿Aplica descuento de fecha?: ${if (enPeriodoPromo) "SI (10% descuento extra en todos los pedidos)" else "NO"}\n")
 
-    // =========================================================================
-    // PASO 2: REFLECTION - DIAGNOSTICO DINAMICO OPCIONAL DE ENTIDADES
-    // =========================================================================
-    println("¿Desea ejecutar la inspeccion dinamica con Reflection (Paso 2) de las clases principales?")
-    val ejecutarReflection = ValidadorEntrada.leerConfirmacion("Responda 's' para ver Reflection o 'n' para ir directo a pedidos (s/n): ")
-    if (ejecutarReflection) {
-        println("\n--- Inspeccion por Reflection ---")
-        AnalizadorReflection.inspeccionarClase(ComboFamiliar::class)
-        AnalizadorReflection.inspeccionarClase(Pedido::class)
-        AnalizadorReflection.inspeccionarClase(Cliente::class)
-    }
-    println()
+
+
+
 
     // =========================================================================
     // FLUJO INTERACTIVO DE PEDIDOS
@@ -90,9 +69,6 @@ fun main() {
         println("                           NUEVO PEDIDO                                   ")
         println("==========================================================================")
 
-        // ---------------------------------------------------------------------
-        // PASO 1 & 5: REGISTRO DE CLIENTE CON REGEX Y EVALUACION DE DUPLICADOS
-        // ---------------------------------------------------------------------
         println("\n--- 1. Datos del Cliente ---")
         val nombre = ValidadorEntrada.leerTextoNoVacio("Ingrese nombre del cliente: ", "nombre")
 
@@ -112,16 +88,13 @@ fun main() {
 
         val cliente = Cliente(nombre = nombre, telefono = telefono, email = email, direccion = direccion)
 
-        // Paso 5: Evaluacion de duplicidad con equals() y hashCode()
         println("\n--- Registro de Cliente en GestorRegistro (equals / hashCode) ---")
         val esClienteNuevo = GestorRegistro.registrarCliente(cliente)
         if (!esClienteNuevo) {
             println(" -> [INFO] Cliente recurrente reconocido en el sistema.")
         }
 
-        // ---------------------------------------------------------------------
-        // SELECCION DE PRODUCTOS Y RANGOS (1..100)
-        // ---------------------------------------------------------------------
+
         println("\n--- 2. Seleccion de Productos del Catalogo ---")
         val productosSeleccionados = mutableListOf<Producto>()
         var agregarMasProductos = true
@@ -163,9 +136,7 @@ fun main() {
             fecha = hoy
         )
 
-        // ---------------------------------------------------------------------
-        // PASO 3: OPERATOR OVERLOADING (+) EN FLUJO REAL
-        // ---------------------------------------------------------------------
+
         println("\n--------------------------------------------------------------------------")
         println("PASO 3: SOBRECARGA DEL OPERADOR '+' (OPERATOR OVERLOADING)")
         println("--------------------------------------------------------------------------")
@@ -204,23 +175,14 @@ fun main() {
             pedidoActual = pedidoCombinado
         }
 
-        // ---------------------------------------------------------------------
-        // PASO 4: DECLARACIONES DE DESESTRUCTURACION
-        // ---------------------------------------------------------------------
-        // 1. Desestructuracion de Cliente: (nombre, email, telefono)
+
         val (nombreCli, emailCli, telefonoCli) = pedidoActual.cliente
 
-        // 2. Desestructuracion de Pedido: (cliente, productos, total)
         val (clienteExtraido, productosExtraidos, totalCalculado) = pedidoActual
 
-        // ---------------------------------------------------------------------
-        // PASO 2: DETECCION DINAMICA DE ANOTACIONES @Promocionable
-        // ---------------------------------------------------------------------
         val productosPromo = pedidoActual.obtenerProductosPromocionables()
 
-        // ---------------------------------------------------------------------
-        // PASO 6 & 7: RESUMEN ORDENADO Y CONFIRMACION
-        // ---------------------------------------------------------------------
+
         println("\n==========================================================================")
         println("             RESUMEN Y CONFIRMACION FINAL DEL PEDIDO                      ")
         println("==========================================================================")
