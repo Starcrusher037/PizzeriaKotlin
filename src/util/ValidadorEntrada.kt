@@ -50,8 +50,17 @@ object ValidadorEntrada {
 
     /**
      * Solicita un texto obligatorio que no puede estar vacio ni compuesto solo de espacios.
+     *
+     * - Si nombreCampo es "nombre": valida que contenga al menos una letra y no sea puramente numerico.
+     * - Si nombreCampo es "direccion de entrega": valida formato de calle con Regex. Si no incluye
+     *   numero, agrega automaticamente "#0" al final.
      */
     fun leerTextoNoVacio(mensaje: String, nombreCampo: String = "campo"): String {
+        // Regex nombre: debe contener al menos dos letras y solo letras/espacios/apostrofes/guiones
+        val regexNombre = Regex("^[\\p{L}]+([\\p{L} '\\-]*[\\p{L}]+)?\$")
+        // Regex direccion: texto alfabetico inicial (calle) seguido opcionalmente de numero (ej: "Av. Las Heras 1234")
+        val regexDireccion = Regex("^[\\p{L}][\\p{L}0-9 .,'°#\\-]*(\\d+)?\$")
+
         while (true) {
             try {
                 print(mensaje)
@@ -59,7 +68,27 @@ object ValidadorEntrada {
                 if (linea.isNullOrBlank()) {
                     throw IllegalArgumentException("El $nombreCampo no puede estar vacio.")
                 }
-                return linea
+
+                return when (nombreCampo) {
+                    "nombre" -> {
+                        if (!regexNombre.matches(linea)) {
+                            throw IllegalArgumentException(
+                                "El nombre solo puede contener letras y espacios (sin numeros ni simbolos especiales)."
+                            )
+                        }
+                        linea
+                    }
+                    "direccion de entrega" -> {
+                        if (!regexDireccion.matches(linea)) {
+                            throw IllegalArgumentException(
+                                "La direccion debe comenzar con el nombre de la calle (ej: 'Av. Siempre Viva 742')."
+                            )
+                        }
+                        // Si no termina con un numero, agrega #0 como numero de puerta
+                        if (!linea.last().isDigit()) "$linea #0" else linea
+                    }
+                    else -> linea
+                }
             } catch (e: Exception) {
                 println("[ERROR] Error de entrada: ${e.message} Por favor, intente nuevamente.")
             }
