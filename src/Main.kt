@@ -75,20 +75,20 @@ fun main() {
         // Regex: Telefono opcional formateado automaticamente a +XX (XXX) XXX-XXXX
         val telefono = ValidadorEntrada.leerTelefonoOpcional("Ingrese telefono (ej: 98765432 o Enter para omitir): ")
         if (telefono != null) {
-            println(" -> Telefono formateado uniformemente con Regex: $telefono")
+            println(" -> Telefono formateado uniformemente $telefono")
         }
 
         // Regex: Email opcional validado con patron nombre@dominio.com
         val email = ValidadorEntrada.leerEmailOpcional("Ingrese correo electronico (nombre@dominio.com o Enter para omitir): ")
         if (email != null) {
-            println(" -> Correo validado exitosamente con Regex: $email")
+            println(" -> Correo validado exitosamente: $email")
         }
 
         val direccion = ValidadorEntrada.leerTextoNoVacio("Ingrese direccion de entrega: ", "direccion de entrega")
 
         val cliente = Cliente(nombre = nombre, telefono = telefono, email = email, direccion = direccion)
 
-        println("\n--- Registro de Cliente en GestorRegistro (equals / hashCode) ---")
+        println("\n--- Registro de Cliente en GestorRegistro ---")
         val esClienteNuevo = GestorRegistro.registrarCliente(cliente)
         if (!esClienteNuevo) {
             println(" -> [INFO] Cliente recurrente reconocido en el sistema.")
