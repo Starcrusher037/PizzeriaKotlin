@@ -47,7 +47,7 @@ fun main() {
     val hoy = LocalDate.now()
     val enPeriodoPromo = PromocionFechaHelper.estaEnPeriodoPromocion(hoy)
     println("==========================================================================")
-    println("PASO 1: EVALUACION DE RANGO DE FECHAS PROMOCIONALES (RANGES)")
+    println("EVALUACIÓN DE RANGO DE FECHAS PROMOCIONALES (RANGES)")
     println("==========================================================================")
     println("Periodo promocional activo : ${PromocionFechaHelper.PERIODO_PROMOCIONAL.start} al ${PromocionFechaHelper.PERIODO_PROMOCIONAL.endInclusive}")
     println("Fecha actual de operacion  : $hoy")
@@ -137,9 +137,6 @@ fun main() {
         )
 
 
-        println("\n--------------------------------------------------------------------------")
-        println("PASO 3: SOBRECARGA DEL OPERADOR '+' (OPERATOR OVERLOADING)")
-        println("--------------------------------------------------------------------------")
         println("¿Desea agregar una adicion o segundo pedido y combinarlo con el actual")
         val combinarConOtro = ValidadorEntrada.leerConfirmacion("utilizando la sobrecarga del operador '+'? (s/n): ")
 
@@ -167,7 +164,6 @@ fun main() {
             )
 
             // Ejecucion real de la sobrecarga del operador '+'
-            println("\n[EJECUTANDO OPERATOR OVERLOADING] val pedidoCombinado = pedidoActual + pedidoB")
             val pedidoCombinado = pedidoActual + pedidoB
             println("¡Pedidos combinados exitosamente en Pedido #${pedidoCombinado.idPedido}!")
             println(" - Cantidad total de productos combinados: ${pedidoCombinado.productos.size}")
@@ -275,7 +271,7 @@ fun main() {
     val pendientesOCancelados = pedidosDelDia.filter { it.estadoPedido == "En preparacion" || it.estadoPedido == "Cancelado" }
     val recaudacionTotal = completados.sumOf { it.calcularTotal() }
 
-    println("\n--- Resumen por Estados (Agrupados con filter) ---")
+    println("\n--- Resumen por Estados---")
     println("Pedidos Completados / Entregados: ${completados.size}")
     for (p in completados) {
         println("  -> #${p.idPedido} (${p.cliente.nombre}) - Total: $${"%.2f".format(p.calcularTotal())}")
